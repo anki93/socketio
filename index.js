@@ -25,12 +25,31 @@ let numUsers = 0;
 io.on('connection', function (socket) {
   var addedUser = false;
 
+  // Get all online user
+  socket.on('ONLINE_USER', function () {
+
+    let keys = Object.keys(io.sockets.clients().connected);
+    let users = []
+
+    for (let key of keys) {
+
+      let user = {
+        username:io.sockets.clients().connected[key].username,
+        id: key
+      }
+      // skip current session user
+      if(key != socket.id && user.username) users.push(user)
+    }
+
+    socket.emit('USERS', users)
+
+  })
+
   // when the client emits 'new message', this listens and executes
   socket.on('new message', function ({msg, id}) {
     // we tell the client to execute 'new message'
-    console.log(arguments)
     if (id) {
-      socket.broadcast.to(id).emit('new message', msg);      
+      socket.to(id).emit('private', msg);
     } else {
       socket.broadcast.emit('new message', {
         username: socket.username,
@@ -81,6 +100,7 @@ io.on('connection', function (socket) {
       // echo globally that this client has left
       socket.broadcast.emit('user left', {
         username: socket.username,
+        id: socket.id,
         numUsers: numUsers
       });
     }
@@ -89,6 +109,6 @@ io.on('connection', function (socket) {
 });
 
 
-http.listen(3000, function(){
+http.listen(5000, function(){
   console.log('listening on *:3000');
 });

@@ -24,19 +24,19 @@ $(function() {
     var $currentInput = $usernameInput.focus();
 
     $userList.on("click", 'li', function(){
-      $(this).addClass("active").siblings().removeClass("active")
+      $(this).toggleClass("active").siblings(".active").removeClass("active")
     })
 
     var socket = io();
 
     function addParticipantsMessage (data) {
-      var message = '';
-      if (data.numUsers === 1) {
-        message += "there's 1 participant";
-      } else {
-        message += "there are " + data.numUsers + " participants";
-      }
-      log(message);
+      // var message = '';
+      // if (data.numUsers === 1) {
+      //   message += "there's 1 participant";
+      // } else {
+      //   message += "there are " + data.numUsers + " participants";
+      // }
+      // log(message);
     }
 
     // Sets the client's username
@@ -237,6 +237,7 @@ $(function() {
 
     // Whenever the server emits 'login', log the login message
     socket.on('login', function (data) {
+      console.info(data);
       connected = true;
       // Display the welcome message
       var message = " ";
@@ -252,6 +253,28 @@ $(function() {
       addChatMessage(data);
     });
 
+    socket.emit('ONLINE_USER')
+
+    socket.on('USERS', function (users) {
+      $userList.empty()
+
+      for(let user of users) {
+        $userList.append(
+          `<li id="${user.id}">
+            ${user.username}
+          </li>`
+        )
+      }
+
+    })
+
+    socket.on('private', function (msg) {
+      addChatMessage({
+        username: username,
+        message: msg
+      });
+    });
+
     // Whenever the server emits 'user joined', log it in the chat body
     socket.on('user joined', function (data) {
       $userList.append(
@@ -259,8 +282,7 @@ $(function() {
           ${data.username}
         </li>`
       )
-      console.log(data);
-      log(data.username + ' joined');
+      //log(data.username + ' joined');
       addParticipantsMessage(data);
     });
 
@@ -269,6 +291,7 @@ $(function() {
       log(data.username + ' left');
       addParticipantsMessage(data);
       removeChatTyping(data);
+      $userList.find(`#${data.id}`).remove();
     });
 
     // Whenever the server emits 'typing', show the typing message
@@ -287,6 +310,7 @@ $(function() {
     });
 
     socket.on('reconnect', function () {
+      socket.emit('ONLINE_USER')
     //  log('you have been reconnected');
       if (username) {
         socket.emit('add user', username);
