@@ -268,9 +268,9 @@ $(function() {
 
     })
 
-    socket.on('private', function (msg) {
+    socket.on('private', function ({msg, username}) {
       addChatMessage({
-        username: username,
+        username,
         message: msg
       });
     });

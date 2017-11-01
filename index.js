@@ -49,7 +49,7 @@ io.on('connection', function (socket) {
   socket.on('new message', function ({msg, id}) {
     // we tell the client to execute 'new message'
     if (id) {
-      socket.to(id).emit('private', msg);
+      socket.to(id).emit('private', {msg, username:socket.username});
     } else {
       socket.broadcast.emit('new message', {
         username: socket.username,
