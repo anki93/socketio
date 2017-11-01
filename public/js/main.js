@@ -10,7 +10,7 @@ $(function() {
     // Initialize variables
     var $window = $(window);
     var $usernameInput = $('.usernameInput'); // Input for username
-    var $messages = $('.messages'); // Messages area
+    var $messages = $('.messages'); //f Messages area
     var $inputMessage = $('.inputMessage'); // Input message input box
 
     var $loginPage = $('.login.page'); // The login page
@@ -22,6 +22,10 @@ $(function() {
     var typing = false;
     var lastTypingTime;
     var $currentInput = $usernameInput.focus();
+
+    $userList.on("click", 'li', function(){
+      $(this).addClass("active").siblings().removeClass("active")
+    })
 
     var socket = io();
 
@@ -64,7 +68,13 @@ $(function() {
           message: message
         });
         // tell server to execute 'new message' and send along one parameter
-        socket.emit('new message', message);
+        var data = { msg: message }
+
+        var $findActive = $userList.find(".active")
+
+        if($findActive.length) data.id = $findActive.attr("id")
+
+        socket.emit('new message', data);
       }
     }
 
@@ -272,6 +282,7 @@ $(function() {
     });
 
     socket.on('disconnect', function () {
+      $userList.empty()
       //log('you have been disconnected');
     });
 

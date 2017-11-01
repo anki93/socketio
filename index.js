@@ -26,12 +26,18 @@ io.on('connection', function (socket) {
   var addedUser = false;
 
   // when the client emits 'new message', this listens and executes
-  socket.on('new message', function (data) {
+  socket.on('new message', function ({msg, id}) {
     // we tell the client to execute 'new message'
-    socket.broadcast.emit('new message', {
-      username: socket.username,
-      message: data
-    });
+    console.log(arguments)
+    if (id) {
+      socket.broadcast.to(id).emit('new message', msg);      
+    } else {
+      socket.broadcast.emit('new message', {
+        username: socket.username,
+        message: msg
+      });
+    }
+
   });
 
   // when the client emits 'add user', this listens and executes
